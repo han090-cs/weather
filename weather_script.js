@@ -504,6 +504,9 @@ async function getWeather(locationOverride = null) {
     document.getElementById('temp').innerText = Math.round(c.temperature_2m);
     document.getElementById('feelsLike').innerText = Math.round(c.apparent_temperature);
     const weatherText = weatherMyanmar(c.weather_code);
+    const aqiCurrent = air.current?.us_aqi ?? null;
+    const aqiValue = aqiCurrent != null ? Math.round(aqiCurrent) : Math.max(15, Math.min(300, Math.round((c.relative_humidity_2m * 1.4) + (c.wind_speed_10m * 2.2) + (c.temperature_2m * 1.1) + (Number(todayUv || 0) * 8))));
+
     document.getElementById('condition').innerText = weatherText;
     updateInsightSummary({
       condition: weatherText,
@@ -536,12 +539,6 @@ async function getWeather(locationOverride = null) {
     const rainNow = Math.round((h.precipitation_probability || []).find((v, i) => new Date(h.time[i]) >= new Date()) || 0);
     state.rainProb = rainNow;
     document.getElementById('rainProb').innerText = rainNow + '%';
-    updateInsightSummary({
-      condition: weatherMyanmar(c.weather_code),
-      rain: rainNow,
-      wind: Math.round(c.wind_speed_10m),
-      aqi: getAqiLabel(aqiValue)
-    });
 
     const now = new Date();
     const times = [];
@@ -562,8 +559,6 @@ async function getWeather(locationOverride = null) {
     state.rain24 = rain24;
     document.getElementById('rain24Card').innerText = rain24 + ' mm';
 
-    const aqiCurrent = air.current?.us_aqi ?? null;
-    const aqiValue = aqiCurrent != null ? Math.round(aqiCurrent) : Math.max(15, Math.min(300, Math.round((c.relative_humidity_2m * 1.4) + (c.wind_speed_10m * 2.2) + (c.temperature_2m * 1.1) + (Number(uvValue || 0) * 8))));
     document.getElementById('airQuality').innerText = getAqiLabel(aqiValue) + ' · ' + aqiValue;
 
     drawChart(times, temps, pops);
