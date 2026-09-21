@@ -46,6 +46,9 @@
             <button class="quick-btn" onclick="useMyLocation()">📍 လက်ရှိနေရာ</button>
             <button class="quick-btn" onclick="getWeather()">🔄 ပြန်စစ်မည်</button>
         </div>
+
+        <div class="favorites-bar" id="favoritesBar" aria-label="Favourite locations"></div>
+
         <div class="loading" id="loadingBox" aria-live="polite">
             <span class="spinner"></span><span id="loadingText">ရာသီဥတုဒေတာ ရယူနေသည်…</span>
         </div>
@@ -127,6 +130,11 @@
                 </div>
                 <div class="risk-value low" id="floodLevel">--</div>
             </div>
+        </div>
+
+        <div class="section-block compact-section">
+            <div class="chart-header">မုန်တိုင်း / ရေကြီးသတိပေးချက်</div>
+            <div class="alert-timeline" id="alertTimeline"></div>
         </div>
 
         <div class="section-block">

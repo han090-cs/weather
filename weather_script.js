@@ -110,12 +110,44 @@ const cityNames = {
 };
 
 const myanmarTownshipList = Array.from(new Set(Object.values(regionCityMap).flat()));
+const favoriteDefaults = ['Mandalay', 'Yangon', 'Taunggyi', 'Mawlamyine'];
 
 const townshipDataList = document.getElementById('myanmarCities');
 if (townshipDataList) {
   townshipDataList.innerHTML = myanmarTownshipList
     .map((city) => `<option value="${city}">${cityNames[city] || city}</option>`)
     .join('');
+}
+
+function getFavoriteCities() {
+  try {
+    const saved = JSON.parse(localStorage.getItem('weatherFavorites') || '[]');
+    return saved.length ? saved : favoriteDefaults;
+  } catch (e) {
+    return favoriteDefaults;
+  }
+}
+
+function renderFavorites() {
+  const bar = document.getElementById('favoritesBar');
+  if (!bar) return;
+
+  const favorites = getFavoriteCities();
+  bar.innerHTML = favorites.map((city) => {
+    const label = cityNames[city] || city;
+    const active = (document.getElementById('cityInput') && document.getElementById('cityInput').value.trim() === city) || (currentLocation && currentLocation.name === city);
+    return '<button class="favorite-chip' + (active ? ' active' : '') + '" data-city="' + city + '">' + label + '</button>';
+  }).join('');
+
+  bar.querySelectorAll('.favorite-chip').forEach((button) => {
+    button.addEventListener('click', () => {
+      const city = button.dataset.city;
+      if (!city) return;
+      const input = document.getElementById('cityInput');
+      if (input) input.value = city;
+      getWeather({ name: city, latitude: 21.9588, longitude: 96.0891, country_code: 'MM' });
+    });
+  });
 }
 
 function populateLocationSelectors() {
@@ -537,6 +569,7 @@ async function getWeather(locationOverride = null) {
     const updatedText = document.getElementById('updatedText');
     if (updatedText) updatedText.innerText = 'နောက်ဆုံး အပ်ဒိတ် · ' + updated + ' (' + formatMyanmarDate(new Date(), data.timezone || 'Asia/Yangon') + ')';
 
+    renderFavorites();
     setLoading(false);
   } catch (err) {
     setLoading(false);
@@ -597,8 +630,28 @@ function init() {
     if (e.key === 'Enter') getWeather();
   });
 
+  renderFavorites();
   getWeather();
   checkNasaAlerts();
+}
+
+function renderAlertTimeline(events) {
+  const box = document.getElementById('alertTimeline');
+  if (!box) return;
+
+  if (!events || !events.length) {
+    box.innerHTML = '';
+    box.style.display = 'none';
+    return;
+  }
+
+  box.style.display = 'grid';
+  box.innerHTML = events.slice(0, 3).map((event) => {
+    const kind = event.kind === 'storm' ? 'မုန်တိုင်း' : 'ရေကြီးမှု';
+    const title = event.title || kind;
+    const timeText = event.geometry?.[0]?.date || 'လက်ရှိ';
+    return '<div class="timeline-item"><div><div class="timeline-tag">' + kind + '</div><div class="timeline-text">' + title + '</div></div><div class="timeline-text">' + timeText.slice(0, 10) + '</div></div>';
+  }).join('');
 }
 
 async function checkNasaAlerts() {
@@ -628,8 +681,10 @@ async function checkNasaAlerts() {
       return '<div class="alert-item"><strong>' + label + '</strong><br>' + e.title + (link ? ' — <a href="' + link + '" target="_blank" rel="noopener noreferrer">အသေးစိတ်</a>' : '') + '</div>';
     }).join('');
     alertBox.style.display = 'block';
+    renderAlertTimeline(events);
   } catch (e) {
     alertBox.style.display = 'none';
+    renderAlertTimeline([]);
   }
 }
 
