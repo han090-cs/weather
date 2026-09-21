@@ -24,21 +24,6 @@ A responsive weather dashboard for Myanmar with forecast data, air quality, UV i
 
 https://han090-csk.github.io/weather/
 
-## Local run
 
-Open the project folder and serve it with a simple static server:
-
-```bash
-cd /home/han/Documents/weather
-python3 -m http.server 8000
-```
-
-Then open:
-
-```text
-http://localhost:8000/weather.html
-```
-
-## Notes
 
 This dashboard is designed for early warning awareness and planning. Rainfall and flood-risk values are forecast-based indicators, not official site-specific river measurements.
