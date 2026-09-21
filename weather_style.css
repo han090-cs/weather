@@ -195,6 +195,19 @@ body {
     display:inline-block; border:1px solid var(--border); border-radius:20px;
     padding:3px 8px; margin-top:6px; color:var(--text); font-size:10px;
 }
+.usage-note {
+    border:1px solid var(--border); border-radius:12px; background:linear-gradient(180deg, rgba(96,165,250,0.05), rgba(255,255,255,0.04));
+    padding:12px 13px; margin-bottom:18px; color:var(--muted); font-size:11px; line-height:1.7;
+}
+.usage-note strong {
+    display:block; color:var(--text); margin-bottom:8px; font-size:12px;
+}
+.usage-note ul {
+    margin:0; padding-left:18px;
+}
+.usage-note li + li {
+    margin-top:6px;
+}
 
 .status-box { background:var(--chip-track); }
 .alert-box {
@@ -344,6 +357,25 @@ button.action:hover {
     margin-bottom: 8px;
 }
 .alert-item a { color: var(--text); }
+
+.source-strip {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin: 0 0 20px;
+}
+.source-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 6px 10px;
+    border-radius: 999px;
+    background: var(--chip-track);
+    border: 1px solid var(--border);
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.02em;
+}
 
 /* Main display */
 .header-info { text-align: left; margin-bottom: 26px; }
