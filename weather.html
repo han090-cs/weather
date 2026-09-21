@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="my">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Weather | ရာသီဥတု</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- CSS ဖိုင်ကို ချိတ်ဆက်ခြင်း -->
+    <link rel="stylesheet" href="weather_style.css">
+</head>
+<body>
+
+    <div class="app-container">
+
+        <div class="brand-row">
+            <div>
+                <p class="brand-en">WEATHER</p>
+                <p class="brand-my">မြန်မာ့ ရာသီဥတု ခန့်မှန်းချက် — မုန်တိုင်းနှင့် ရေကြီးမှု စောင့်ကြည့်ခြင်း</p>
+            </div>
+            <button id="themeToggle" aria-label="Toggle dark/light mode">☾</button>
+        </div>
+
+        <div class="location-picker">
+            <div class="field-group">
+                <label for="regionSelect">တိုင်း/ဒေသ</label>
+                <select id="regionSelect"></select>
+            </div>
+            <div class="field-group">
+                <label for="citySelect">မြို့</label>
+                <select id="citySelect"></select>
+            </div>
+            <div class="field-group">
+                <label for="townshipSelect">ရပ်ကွက်/မြို့နယ်</label>
+                <select id="townshipSelect"></select>
+            </div>
+        </div>
+
+        <div class="search-box">
+            <input type="text" id="cityInput" list="myanmarCities" placeholder="အထူးမြို့နာမည် ရိုက်ပါ..." value="Mandalay" autocomplete="off" aria-label="မြို့ရှာရန်">
+            <button class="action" id="searchBtn" onclick="getWeather()">ရှာရန်</button>
+        </div>
+
+        <datalist id="myanmarCities"></datalist>
+
+        <div class="quick-actions">
+            <button class="quick-btn" onclick="useMyLocation()">📍 လက်ရှိနေရာ</button>
+            <button class="quick-btn" onclick="getWeather()">🔄 ပြန်စစ်မည်</button>
+        </div>
+        <div class="loading" id="loadingBox" aria-live="polite">
+            <span class="spinner"></span><span id="loadingText">ရာသီဥတုဒေတာ ရယူနေသည်…</span>
+        </div>
+        <div class="updated-text" id="updatedText"></div>
+
+        <!-- Visible error / status messages (in-page, not window.alert) -->
+        <div class="status-box" id="statusBox"></div>
+
+        <!-- NASA EONET storm / flood alerts for Myanmar region -->
+        <div class="alert-box" id="alertBox"></div>
+
+        <div class="header-info">
+            <h1 class="city-name" id="cityName">--</h1>
+            <div class="date-text" id="dateText">--</div>
+        </div>
+
+        <div class="main-weather">
+            <div class="temp-group">
+                <span class="temp" id="temp">--</span>
+                <span class="temp-symbol">°</span>
+            </div>
+            <div>
+                <img id="weatherIcon" class="weather-icon" src="" alt="" style="display: none;">
+            </div>
+        </div>
+
+        <div style="margin-bottom: 32px;">
+            <div class="condition-row">
+                <p class="condition-text" id="condition">--</p>
+                <span class="badge" id="unseasonalBadge" style="display:none;">ရာသီမဟုတ်ဘဲ မိုးရွာနိုင်ချေ</span>
+            </div>
+            <p class="feels-like">ခံစားရသောအပူချိန်: <span id="feelsLike">--</span>°</p>
+        </div>
+
+        <div class="details-list">
+            <div class="detail-item">
+                <div class="detail-label">စိုထိုင်းဆ</div>
+                <div class="detail-value" id="humidity">--%</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">လေတိုက်နှုန်း</div>
+                <div class="detail-value" id="wind">-- km/h</div>
+            </div>
+            <div class="detail-item">
+                <div class="detail-label">မိုးရွာရန်</div>
+                <div class="detail-value" id="rainProb">--%</div>
+            </div>
+        </div>
+
+        <div class="metrics-grid">
+            <div class="metric-card"><span>🕒 အချိန်</span><strong id="localTime">--:--</strong></div>
+            <div class="metric-card"><span>🌧️ မိုးရေချိန်</span><strong id="rain24Card">-- mm</strong></div>
+            <div class="metric-card"><span>🌫️ AQI</span><strong id="airQuality">--</strong></div>
+            <div class="metric-card"><span>🌡️ နှင်းရည်မှတ်</span><strong id="dewPoint">--°</strong></div>
+            <div class="metric-card"><span>🧭 လေဦးတည်ရာ</span><strong id="windDir">--</strong></div>
+            <div class="metric-card"><span>💨 လေပြင်း</span><strong id="gust">-- km/h</strong></div>
+            <div class="metric-card"><span>👁️ မြင်ကွင်း</span><strong id="visibility">-- km</strong></div>
+            <div class="metric-card"><span>🧭 လေဖိအား</span><strong id="pressure">-- hPa</strong></div>
+            <div class="metric-card"><span>☀️ UV Index</span><strong id="uvIndex">--</strong></div>
+        </div>
+
+        <div class="sun-row">
+            <div>🌅 နေထွက် <strong id="sunrise">--:--</strong></div>
+            <div>🌇 နေဝင် <strong id="sunset">--:--</strong></div>
+        </div>
+
+        <div class="risk-section">
+            <div class="risk-header">အန္တရာယ် အကဲဖြတ်ချက်</div>
+            <div class="risk-row">
+                <div>
+                    <div class="risk-name">ရေကြီးနိုင်ချေ (လာမည့် ၂၄ နာရီ)</div>
+                    <div class="risk-note" id="floodDetail">--</div>
+                </div>
+                <div class="risk-value low" id="floodLevel">--</div>
+            </div>
+        </div>
+
+        <div class="section-block">
+            <div class="chart-header">၇ ရက် ရာသီဥတုခန့်မှန်းချက်</div>
+            <div class="daily-list" id="dailyForecast"></div>
+        </div>
+
+        <div class="section-block">
+            <div class="chart-header">လာမည့် ၂၄ နာရီ · ၁ နာရီချင်း</div>
+            <div class="chart-container">
+                <canvas id="weatherChart"></canvas>
+            </div>
+        </div>
+
+        <div class="accuracy-note">
+            <strong>ဒေတာတိကျမှုအကြောင်း</strong><br>
+            လက်ရှိအပူချိန်နှင့် forecast တန်ဖိုးများသည် အနီးဆုံး grid cell အတွက် high-resolution weather model data ဖြစ်ပြီး “တိုင်းတာရေးစခန်းက တိုင်းထားတဲ့ အတိအကျတန်ဖိုး” မဟုတ်ပါ။ မိုးရေချိန်လို local variable များအတွက် အနီးအနား weather station / radar data ရှိပါက ထိုဒေတာက ပိုတိကျနိုင်ပါတယ်။ Forecast ကို နောက်ဆုံး update နဲ့ အမြဲပြန်ယူပေးထားပါတယ်။
+            <div class="source-pill">Open-Meteo · ECMWF / NOAA / other model sources · Best Match</div>
+        </div>
+        <div class="footer-note">
+            ရေကြီးနိုင်ချေသည် လာမည့် ၂၄ နာရီ မိုးရေချိန်ခန့်မှန်းချက်အပေါ် အခြေခံသည့် ရိုးရှင်းသော အကဲဖြတ်ချက်သာဖြစ်ပြီး တရားဝင် သတိပေးချက်အဖြစ် မယူဆပါနှင့်။ မုန်တိုင်း/ရေကြီးမှု ဖြစ်စဉ်များကို NASA EONET မှ ထပ်ဆောင်းပြသထားပါသည်။ ရာသီဥတုအချက်အလက်များကို Open-Meteo မှ ရယူထားပါသည်။
+        </div>
+
+    </div>
+
+    <!-- JavaScript ဖိုင်ကို ချိတ်ဆက်ခြင်း -->
+    <script src="weather_script.js"></script>
+</body>
+</html>
