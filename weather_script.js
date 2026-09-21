@@ -251,7 +251,8 @@ function getLocationTimeLabel(timezone) {
       minute: '2-digit',
       hour12: true
     });
-    return formatter.format(now);
+    const text = formatter.format(now);
+    return text.replace('AM', 'AM').replace('PM', 'PM');
   } catch (e) {
     return new Date().toLocaleTimeString('en-US', {
       hour: '2-digit',
@@ -261,13 +262,30 @@ function getLocationTimeLabel(timezone) {
   }
 }
 
+function formatMyanmarDate(dateValue, timezone = 'Asia/Yangon') {
+  const date = new Date(dateValue);
+  const dayNames = ['တနင်္ဂနွေ', 'တနင်္လာ', 'အင်္ဂါ', 'ဗုဒ္ဓဟူး', 'ကြာသပတေး', 'သောကြာ', 'စနေ'];
+  const monthNames = ['ဇန်နဝါရီ', 'ဖေဖော်ဝါရီ', 'မတ်', 'ဧပြီ', 'မေ', 'ဇွန်', 'ဇူလိုင်', 'ဩဂုတ်', 'စက်တင်ဘာ', 'အောက်တိုဘာ', 'နိုဝင်ဘာ', 'ဒီဇင်ဘာ'];
+
+  try {
+    const localDate = new Date(date.toLocaleString('en-US', { timeZone: timezone }));
+    const day = dayNames[localDate.getDay()];
+    const month = monthNames[localDate.getMonth()];
+    const dayNumber = localDate.getDate();
+    const year = localDate.getFullYear();
+    return `${day}၊ ${dayNumber} ${month} ${year}`;
+  } catch (e) {
+    return `${dayNames[date.getDay()]}၊ ${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+  }
+}
+
 function getAqiLabel(value) {
   if (value == null) return '--';
-  if (value <= 50) return 'Good';
-  if (value <= 100) return 'Moderate';
-  if (value <= 150) return 'Unhealthy';
-  if (value <= 200) return 'Very Unhealthy';
-  return 'Severe';
+  if (value <= 50) return 'ကောင်းမွန်';
+  if (value <= 100) return 'ပျော့ပျောင်း';
+  if (value <= 150) return 'အနည်းငယ်ဆိုး';
+  if (value <= 200) return 'အဆိုးရွား';
+  return 'အလွန်ဆိုး';
 }
 
 function drawChart(times, temps, popRates) {
@@ -348,11 +366,15 @@ function formatCity(place) {
   return my || place.name;
 }
 
-function floodRiskFromRain(rain24) {
-  if (rain24 >= 100) return { label: 'အလွန်မြင့်', cls: 'severe' };
-  if (rain24 >= 50) return { label: 'မြင့်', cls: 'high' };
-  if (rain24 >= 20) return { label: 'အလယ်အလတ်', cls: 'moderate' };
-  return { label: 'နည်း', cls: 'low' };
+function floodRiskFromRain(rain24, rainProb = 0) {
+  const highRain = rain24 >= 100 || rainProb >= 80;
+  const mediumRain = rain24 >= 50 || rainProb >= 60;
+  const cautionRain = rain24 >= 20 || rainProb >= 40;
+
+  if (highRain) return { label: 'ကြိုတင်သတိပေး', cls: 'severe', level: 'high' };
+  if (mediumRain) return { label: 'သတိထား', cls: 'high', level: 'medium' };
+  if (cautionRain) return { label: 'ကနဦးသတိ', cls: 'moderate', level: 'caution' };
+  return { label: 'လုံခြုံ', cls: 'low', level: 'low' };
 }
 
 function maybeUpdateUnseasonalBadge() {
@@ -362,6 +384,21 @@ function maybeUpdateUnseasonalBadge() {
   const month = new Date().getMonth() + 1;
   const monsoon = month >= 5 && month <= 10;
   badge.style.display = (!monsoon && (state.rainProb >= 40 || state.rain24 >= 10)) ? 'inline-block' : 'none';
+}
+
+async function fetchAirQuality(latitude, longitude) {
+  try {
+    const url = 'https://air-quality-api.open-meteo.com/v1/air-quality' +
+      '?latitude=' + encodeURIComponent(latitude) +
+      '&longitude=' + encodeURIComponent(longitude) +
+      '&current=us_aqi,pm2_5,pm10,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone' +
+      '&timezone=auto';
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    return null;
+  }
 }
 
 async function getWeather(locationOverride = null) {
@@ -388,16 +425,38 @@ async function getWeather(locationOverride = null) {
       '&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,precipitation_sum,rain_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,sunrise,sunset,uv_index_max' +
       '&forecast_days=7&timezone=auto&wind_speed_unit=kmh';
 
-    const res = await fetch(url);
-    if (!res.ok) throw new Error('WEATHER');
-    const data = await res.json();
+    const [weatherRes, airQualityData] = await Promise.all([
+      fetch(url),
+      fetchAirQuality(place.latitude, place.longitude)
+    ]);
+
+    const sourceNote = document.getElementById('sourceNote');
+    if (sourceNote) {
+      sourceNote.innerText = 'အရင်းအမြစ်: Open-Meteo forecast • Open-Meteo air quality • NASA EONET disaster alerts • Myanmar warning layer';
+    }
+
+    const sourceStrip = document.getElementById('sourceStrip');
+    if (sourceStrip) {
+      sourceStrip.innerHTML = [
+        '<span class="source-badge">Weather · Open-Meteo</span>',
+        '<span class="source-badge">AQI · Open-Meteo</span>',
+        '<span class="source-badge">Alert · NASA EONET</span>'
+      ].join('');
+    }
+
+    if (!weatherRes.ok) throw new Error('WEATHER');
+    const data = await weatherRes.json();
 
     const c = data.current;
     const h = data.hourly;
     const d = data.daily;
+    const air = airQualityData || {};
 
     document.getElementById('cityName').innerText = formatCity(place);
-    document.getElementById('dateText').innerText = place.country_code === 'MM' ? 'မြန်မာနိုင်ငံ · ' + place.name : (place.country || '') + ' · ' + place.name;
+    const localDateText = place.country_code === 'MM'
+      ? 'မြန်မာနိုင်ငံ · ' + formatMyanmarDate(new Date(), data.timezone || 'Asia/Yangon')
+      : (place.country || '') + ' · ' + formatMyanmarDate(new Date(), data.timezone || 'Asia/Yangon');
+    document.getElementById('dateText').innerText = localDateText;
     document.getElementById('temp').innerText = Math.round(c.temperature_2m);
     document.getElementById('feelsLike').innerText = Math.round(c.apparent_temperature);
     document.getElementById('condition').innerText = weatherMyanmar(c.weather_code);
@@ -415,7 +474,7 @@ async function getWeather(locationOverride = null) {
     document.getElementById('visibility').innerText = (Math.round((c.visibility / 1000) * 10) / 10) + ' km';
     document.getElementById('pressure').innerText = Math.round(c.pressure_msl) + ' hPa';
 
-    const todayUv = d.uv_index_max?.[0];
+    const todayUv = d.uv_index_max?.[0] ?? air.current?.uv_index ?? h.uv_index?.[0];
     const uvValue = todayUv == null ? '--' : (Math.round(todayUv * 10) / 10);
     document.getElementById('uvIndex').innerText = uvValue;
 
@@ -446,26 +505,37 @@ async function getWeather(locationOverride = null) {
     state.rain24 = rain24;
     document.getElementById('rain24Card').innerText = rain24 + ' mm';
 
-    const aqiValue = Math.max(15, Math.min(300, Math.round((c.relative_humidity_2m * 1.4) + (c.wind_speed_10m * 2.2) + (c.temperature_2m * 1.1) + (Number(uvValue || 0) * 8))));
+    const aqiCurrent = air.current?.us_aqi ?? null;
+    const aqiValue = aqiCurrent != null ? Math.round(aqiCurrent) : Math.max(15, Math.min(300, Math.round((c.relative_humidity_2m * 1.4) + (c.wind_speed_10m * 2.2) + (c.temperature_2m * 1.1) + (Number(uvValue || 0) * 8))));
     document.getElementById('airQuality').innerText = getAqiLabel(aqiValue) + ' · ' + aqiValue;
 
     drawChart(times, temps, pops);
 
-    const flood = floodRiskFromRain(rain24);
+    const flood = floodRiskFromRain(rain24, Number(state.rainProb || 0));
     const floodEl = document.getElementById('floodLevel');
     if (floodEl) {
       floodEl.innerText = flood.label;
       floodEl.className = 'risk-value ' + flood.cls;
     }
     const floodDetail = document.getElementById('floodDetail');
-    if (floodDetail) floodDetail.innerText = 'လာမည့် ၂၄ နာရီ မိုးရေချိန် ခန့်မှန်း ' + rain24 + ' mm';
+    if (floodDetail) {
+      if (flood.level === 'high') {
+        floodDetail.innerText = 'ကြိုတင်သတိပေးချက်: ၂၄ နာရီအတွင်း မိုးရေချိန် ' + rain24 + ' mm ခန့်မှန်းပြီး အရည်အသွေးပြင်းထန်မှုရှိသည်။ တစ်လုံးတည်းချိန်ထိန်းကာ အနီးတဝိုက် မြစ်၊ ကျောက်တန်း၊ အနီးနား တောင်စောင်းများကို စောင့်ကြည့်ပါ။';
+      } else if (flood.level === 'medium') {
+        floodDetail.innerText = 'သတိထားရန်: ၂၄ နာရီ မိုးရေချိန် ' + rain24 + ' mm ခန့်မှန်းပြီး ရေကြီးမှုအန္တရာယ် အနည်းငယ်ရှိနိုင်ပါသည်။ ဒေသဆိုင်ရာသတိပေးချက်များကို အမြဲစစ်ပါ။';
+      } else if (flood.level === 'caution') {
+        floodDetail.innerText = 'ကနဦးသတိ: ၂၄ နာရီမိုးရေချိန် ' + rain24 + ' mm ခန့်မှန်းပြီး ရေကြီးမှုအန္တရာယ် လှုံ့ဆော်နိုင်ပါသည်။ ရေထိန်းစနစ်နှင့် မြစ်ကမ်းနားအနီးများကို စောင့်ကြည့်ပါ။';
+      } else {
+        floodDetail.innerText = 'အနေအထားပျော့: လက်ရှိ ခန့်မှန်းချက်အရ ရေကြီးမှုအန္တရာယ် နည်းပါသည်။ ဒေသအခြေအနေကို မကြာခဏ စစ်ဆေးပါ။';
+      }
+    }
 
     renderDailyForecast(d);
     maybeUpdateUnseasonalBadge();
 
-    const updated = new Date().toLocaleTimeString('my-MM', { hour: '2-digit', minute: '2-digit' });
+    const updated = new Date().toLocaleTimeString('en-US', { timeZone: data.timezone || 'Asia/Yangon', hour: '2-digit', minute: '2-digit', hour12: true });
     const updatedText = document.getElementById('updatedText');
-    if (updatedText) updatedText.innerText = 'နောက်ဆုံးစစ်ဆေးချိန် · ' + updated;
+    if (updatedText) updatedText.innerText = 'နောက်ဆုံး အပ်ဒိတ် · ' + updated + ' (' + formatMyanmarDate(new Date(), data.timezone || 'Asia/Yangon') + ')';
 
     setLoading(false);
   } catch (err) {
