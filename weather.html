@@ -57,6 +57,12 @@
         <!-- NASA EONET storm / flood alerts for Myanmar region -->
         <div class="alert-box" id="alertBox"></div>
 
+        <div class="source-strip" id="sourceStrip">
+            <span class="source-badge">Weather · Open-Meteo</span>
+            <span class="source-badge">AQI · Open-Meteo</span>
+            <span class="source-badge">Alert · NASA EONET</span>
+        </div>
+
         <div class="header-info">
             <h1 class="city-name" id="cityName">--</h1>
             <div class="date-text" id="dateText">--</div>
@@ -137,11 +143,21 @@
 
         <div class="accuracy-note">
             <strong>ဒေတာတိကျမှုအကြောင်း</strong><br>
-            လက်ရှိအပူချိန်နှင့် forecast တန်ဖိုးများသည် အနီးဆုံး grid cell အတွက် high-resolution weather model data ဖြစ်ပြီး “တိုင်းတာရေးစခန်းက တိုင်းထားတဲ့ အတိအကျတန်ဖိုး” မဟုတ်ပါ။ မိုးရေချိန်လို local variable များအတွက် အနီးအနား weather station / radar data ရှိပါက ထိုဒေတာက ပိုတိကျနိုင်ပါတယ်။ Forecast ကို နောက်ဆုံး update နဲ့ အမြဲပြန်ယူပေးထားပါတယ်။
+            လက်ရှိအပူချိန်နှင့် forecast တန်ဖိုးများသည် အနီးဆုံး grid cell အတွက် high-resolution weather model data ဖြစ်ပြီး “တိုင်းတာရေးစခန်းက တိုင်းထားတဲ့ အတိအကျတန်ဖိုး” မဟုတ်ပါ။ မိုးရေချိန်၊ UV၊ AQI စသည်တို့အတွက် အနီးအနား station / radar / monitoring data ရှိပါက ထိုဒေတာက ပိုတိကျနိုင်ပါတယ်။ Forecast ကို နောက်ဆုံး update နဲ့ အမြဲပြန်ယူပေးထားပါတယ်။
             <div class="source-pill">Open-Meteo · ECMWF / NOAA / other model sources · Best Match</div>
         </div>
-        <div class="footer-note">
-            ရေကြီးနိုင်ချေသည် လာမည့် ၂၄ နာရီ မိုးရေချိန်ခန့်မှန်းချက်အပေါ် အခြေခံသည့် ရိုးရှင်းသော အကဲဖြတ်ချက်သာဖြစ်ပြီး တရားဝင် သတိပေးချက်အဖြစ် မယူဆပါနှင့်။ မုန်တိုင်း/ရေကြီးမှု ဖြစ်စဉ်များကို NASA EONET မှ ထပ်ဆောင်းပြသထားပါသည်။ ရာသီဥတုအချက်အလက်များကို Open-Meteo မှ ရယူထားပါသည်။
+
+        <div class="usage-note">
+            <strong>ရေရှည်အသုံးဝင်မှု</strong>
+            <ul>
+                <li>မိုးရေချိန်ကို ကြိုတင်ပြင်ဆင်သိရင် စိုက်ပျိုးရေး၊ ရေသိုလှောင်မှု၊ တောင်စောင်းစိုရွှဲမှုကို ကြိုတင်စောင့်ကြည့်နိုင်သည်။</li>
+                <li>၂၄ နာရီမိုးရေချိန် ခန့်မှန်းချက်က ရေကြီးမှုအန္တရာယ်၊ မြစ်ကမ်းနားအန္တရာယ်၊ စီးပွားရေး ပျက်စီးမှုကို ကြိုတင်သတိပေးနိုင်သည်။</li>
+                <li>UV နှင့် AQI အချက်အလက်များက ကျန်းမာရေး၊ အနာတမီဒိတ်အတိုင်းအတာနှင့် လေ့လာမှုအတွက် ချက်ချင်းအသုံးဝင်သည်။</li>
+            </ul>
+        </div>
+
+        <div class="footer-note" id="sourceNote">
+            ရေကြီးနိုင်ချေသည် ကြိုတင်သတိပေးချက်အတွက် ၂၄ နာရီ မိုးရေချိန်ခန့်မှန်းချက်အပေါ် အခြေခံသော warning layer တစ်ခုသာဖြစ်ပြီး တရားဝင်နှင့်အတိအကျသော ရေကြီးမှုတိကျချက်အဖြစ် မယူဆပါနှင့်။ မုန်တိုင်း/ရေကြီးမှု ဖြစ်စဉ်များကို NASA EONET မှ ထပ်ဆောင်းပြသထားပါသည်။
         </div>
 
     </div>
