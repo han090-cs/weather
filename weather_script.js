@@ -228,6 +228,18 @@ function setLoading(on, text = 'ရာသီဥတုဒေတာ ရယူန�
   }
 }
 
+function updateInsightSummary({ condition, rain, wind, aqi }) {
+  const conditionEl = document.getElementById('summaryCondition');
+  const rainEl = document.getElementById('summaryRain');
+  const windEl = document.getElementById('summaryWind');
+  const aqiEl = document.getElementById('summaryAqi');
+
+  if (conditionEl) conditionEl.textContent = condition || '--';
+  if (rainEl) rainEl.textContent = rain ? rain + '%' : '--';
+  if (windEl) windEl.textContent = wind ? wind + ' km/h' : '--';
+  if (aqiEl) aqiEl.textContent = aqi || '--';
+}
+
 function updateDate() {
   const days = ['တနင်္ဂနွေ', 'တနင်္လာ', 'အင်္ဂါ', 'ဗုဒ္ဓဟူး', 'ကြာသပတေး', 'သောကြာ', 'စနေ'];
   const months = ['ဇန်နဝါရီ', 'ဖေဖော်ဝါရီ', 'မတ်', 'ဧပြီ', 'မေ', 'ဇွန်', 'ဇူလိုင်', 'ဩဂုတ်', 'စက်တင်ဘာ', 'အောက်တိုဘာ', 'နိုဝင်ဘာ', 'ဒီဇင်ဘာ'];
@@ -491,7 +503,14 @@ async function getWeather(locationOverride = null) {
     document.getElementById('dateText').innerText = localDateText;
     document.getElementById('temp').innerText = Math.round(c.temperature_2m);
     document.getElementById('feelsLike').innerText = Math.round(c.apparent_temperature);
-    document.getElementById('condition').innerText = weatherMyanmar(c.weather_code);
+    const weatherText = weatherMyanmar(c.weather_code);
+    document.getElementById('condition').innerText = weatherText;
+    updateInsightSummary({
+      condition: weatherText,
+      rain: rainNow,
+      wind: Math.round(c.wind_speed_10m),
+      aqi: getAqiLabel(aqiValue)
+    });
 
     const icon = document.getElementById('weatherIcon');
     if (icon) {
@@ -517,6 +536,12 @@ async function getWeather(locationOverride = null) {
     const rainNow = Math.round((h.precipitation_probability || []).find((v, i) => new Date(h.time[i]) >= new Date()) || 0);
     state.rainProb = rainNow;
     document.getElementById('rainProb').innerText = rainNow + '%';
+    updateInsightSummary({
+      condition: weatherMyanmar(c.weather_code),
+      rain: rainNow,
+      wind: Math.round(c.wind_speed_10m),
+      aqi: getAqiLabel(aqiValue)
+    });
 
     const now = new Date();
     const times = [];

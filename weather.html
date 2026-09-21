@@ -20,11 +20,6 @@
             <button id="themeToggle" aria-label="Toggle dark/light mode">☾</button>
         </div>
 
-        <div class="preview-banner">
-            <span>Live preview</span>
-            <a href="https://han090-csk.github.io/weather/" target="_blank" rel="noopener noreferrer">han090-csk.github.io/weather</a>
-        </div>
-
         <div class="location-picker">
             <div class="field-group">
                 <label for="regionSelect">တိုင်း/ဒေသ</label>
@@ -69,6 +64,40 @@
             <span class="source-badge">Weather · Open-Meteo</span>
             <span class="source-badge">AQI · Open-Meteo</span>
             <span class="source-badge">Alert · NASA EONET</span>
+        </div>
+
+        <div class="insight-panel">
+            <div class="insight-header">ယနေ့အခြေအနေ အကျဉ်းချုပ်</div>
+            <div class="insight-grid">
+                <div class="insight-card">
+                    <div class="insight-icon">🌤️</div>
+                    <div>
+                        <div class="insight-label">အခြေအနေ</div>
+                        <div class="insight-value" id="summaryCondition">--</div>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-icon">🌧️</div>
+                    <div>
+                        <div class="insight-label">မိုးရေချိန်</div>
+                        <div class="insight-value" id="summaryRain">--</div>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-icon">💨</div>
+                    <div>
+                        <div class="insight-label">လေတိုက်နှုန်း</div>
+                        <div class="insight-value" id="summaryWind">--</div>
+                    </div>
+                </div>
+                <div class="insight-card">
+                    <div class="insight-icon">🌬️</div>
+                    <div>
+                        <div class="insight-label">AQI</div>
+                        <div class="insight-value" id="summaryAqi">--</div>
+                    </div>
+                </div>
+            </div>
         </div>
 
         <div class="header-info">
@@ -171,6 +200,11 @@
 
         <div class="footer-note" id="sourceNote">
             ရေကြီးနိုင်ချေသည် ကြိုတင်သတိပေးချက်အတွက် ၂၄ နာရီ မိုးရေချိန်ခန့်မှန်းချက်အပေါ် အခြေခံသော warning layer တစ်ခုသာဖြစ်ပြီး တရားဝင်နှင့်အတိအကျသော ရေကြီးမှုတိကျချက်အဖြစ် မယူဆပါနှင့်။ မုန်တိုင်း/ရေကြီးမှု ဖြစ်စဉ်များကို NASA EONET မှ ထပ်ဆောင်းပြသထားပါသည်။
+        </div>
+
+        <div class="page-footer">
+            <span class="footer-label">Built by</span>
+            <a class="github-link" href="https://github.com/han090-csk" target="_blank" rel="noopener noreferrer">GitHub: han090-csk</a>
         </div>
 
     </div>
