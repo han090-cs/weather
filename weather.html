@@ -1,13 +1,100 @@
 <!doctype html>
 <html lang="my">
-<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#eef4ff"><title>မိုးလေဝသ · Weather</title><link rel="stylesheet" href="weather_style.css"></head>
-<body><main class="shell">
-<header class="topbar"><a class="brand" href="./"><span class="brand-mark">☁</span><span><strong>မိုးလေဝသ</strong><small>Myanmar Weather</small></span></a><div class="top-actions"><button id="languageToggle" class="icon-button">EN</button><button id="themeToggle" class="icon-button">☾</button></div></header>
-<section class="search-panel"><div><p class="eyebrow" data-i18n="eyebrow">ယနေ့အတွက် ရာသီဥတု</p><h1 data-i18n="headline">ဘယ်နေရာမှာ မိုးရွာမလဲ?</h1><p class="muted" data-i18n="subheadline">မြို့ သို့မဟုတ် မြို့နယ်နာမည်ကို ရှာပါ။</p></div><form id="searchForm" class="search-form"><label class="search-field">⌕ <input id="locationInput" list="locationSuggestions" autocomplete="off" placeholder="မြို့ / မြို့နယ် ရှာရန်"><datalist id="locationSuggestions"></datalist></label><button class="primary-button" data-i18n="search">ရှာရန်</button></form><div class="quick-row"><button id="currentLocation" class="quiet-button" data-i18n="useLocation">⌖ လက်ရှိနေရာ</button><div id="recentLocations" class="chips"></div></div></section>
-<div id="status" class="status" role="status" hidden></div><div id="loading" class="loading" hidden>◌ <span data-i18n="loading">ဒေတာရယူနေသည်…</span></div>
-<section id="dashboard" hidden><div class="location-heading"><div><p class="eyebrow" data-i18n="currentWeather">လက်ရှိရာသီဥတု</p><h2 id="locationName">—</h2><p id="locationMeta" class="muted">—</p></div><time id="updatedAt" class="muted">—</time></div>
-<div class="hero-card"><div><div class="hero-temp"><span id="temperature">—</span><sup>°C</sup></div><p id="condition" class="condition">—</p><p class="muted"><span data-i18n="feelsLike">ခံစားရသည်</span> <strong id="feelsLike">—</strong>°C</p></div><div id="weatherIcon" class="weather-icon">☀️</div><span id="severityBadge" class="badge normal">Normal</span></div>
-<div class="metric-grid"><article class="metric">🌧<div><p data-i18n="rainfall">မိုးရေချိန်</p><strong id="rainfall">—</strong><small>24h</small></div></article><article class="metric">☔<div><p data-i18n="rainChance">မိုးရွာနိုင်ချေ</p><strong id="rainChance">—</strong></div></article><article class="metric">🌫<div><p data-i18n="airQuality">လေထုအရည်အသွေး</p><strong id="aqi">—</strong><small id="aqiDetail">—</small></div></article><article class="metric">☀<div><p data-i18n="uvIndex">UV အညွှန်း</p><strong id="uvIndex">—</strong><small id="uvDetail">—</small></div></article><article class="metric">💧<div><p data-i18n="humidity">စိုထိုင်းဆ</p><strong id="humidity">—</strong></div></article><article class="metric">💨<div><p data-i18n="wind">လေတိုက်နှုန်း</p><strong id="wind">—</strong><small id="windDirection">—</small></div></article></div>
-<div class="content-grid"><section class="card"><div class="section-heading"><h3 data-i18n="sevenDay">၇ ရက် ခန့်မှန်းချက်</h3><span class="source-tag">Open-Meteo</span></div><div id="forecast" class="forecast-list"></div></section><section class="card"><div class="section-heading"><h3 data-i18n="hazards">အန္တရာယ်အခြေအနေ</h3><span class="source-tag">Early signal</span></div><div id="hazards" class="hazards"></div><p class="tiny" data-i18n="hazardNote">ဤအချက်များသည် ခန့်မှန်းအချက်ပြချက်သာဖြစ်ပြီး တရားဝင်သတိပေးချက်မဟုတ်ပါ။</p></section></div>
-<section class="card climate-card"><div class="section-heading"><div><h3 data-i18n="climateTitle">နှစ် ၄၀ ရာသီဥတုမှတ်တမ်း</h3><p class="muted" data-i18n="climateHint">NASA POWER data နှင့် လက်ရှိအခြေအနေကို နှိုင်းယှဉ်ထားသည်။</p></div><span class="source-tag">NASA POWER</span></div><div id="climateSummary" class="climate-summary">—</div><div id="climateChart" class="climate-chart"></div><p id="outlook" class="outlook" hidden></p></section><p class="disclaimer" data-i18n="disclaimer">ခန့်မှန်းချက်သည် မော်ဒယ်ဒေတာဖြစ်ပြီး တရားဝင်ဘေးအန္တရာယ်သတိပေးချက် မဟုတ်ပါ။ အရေးပေါ်အခြေအနေတွင် အာဏာပိုင်များ၏ ထုတ်ပြန်ချက်ကိုသာ လိုက်နာပါ။</p></section>
-<footer>Weather Myanmar · Open-Meteo · NASA POWER</footer></main><script src="weather_script.js"></script></body></html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eef4ff">
+  <meta name="description" content="Free bilingual Myanmar weather dashboard with forecast, climate history and risk overview.">
+  <title>မိုးလေဝသ · Weather</title>
+  <link rel="stylesheet" href="weather_style.css">
+</head>
+<body>
+  <main class="shell">
+    <header class="topbar">
+      <a class="brand" href="./" aria-label="Weather home"><span class="brand-mark">☁</span><span><strong>မိုးလေဝသ</strong><small>Myanmar Weather</small></span></a>
+      <div class="top-actions"><button id="languageToggle" class="icon-button" type="button">EN</button><button id="themeToggle" class="icon-button" type="button">☾</button></div>
+    </header>
+
+    <section class="search-panel" aria-label="Location search">
+      <div><p class="eyebrow" data-i18n="eyebrow">ယနေ့အတွက် ရာသီဥတု</p><h1 data-i18n="headline">ဘယ်နေရာမှာ မိုးရွာမလဲ?</h1><p class="muted" data-i18n="subheadline">မြို့ သို့မဟုတ် မြို့နယ်နာမည်ကို ရှာပါ။</p></div>
+      <form id="searchForm" class="search-form"><label class="search-field"><span aria-hidden="true">⌕</span><input id="locationInput" list="locationSuggestions" autocomplete="off" placeholder="မြို့ / မြို့နယ် ရှာရန်" aria-label="Search location"><datalist id="locationSuggestions"></datalist></label><button class="primary-button" type="submit" data-i18n="search">ရှာရန်</button></form>
+      <div class="quick-row"><button id="currentLocation" class="quiet-button" type="button" data-i18n="useLocation">⌖ လက်ရှိနေရာ</button><div id="recentLocations" class="chips" aria-label="Recent locations"></div></div>
+    </section>
+
+    <div id="status" class="status" role="status" aria-live="polite" hidden></div>
+    <div id="loading" class="loading" hidden><span class="spinner"></span><span data-i18n="loading">ဒေတာရယူနေသည်…</span></div>
+
+    <section id="dashboard" hidden>
+      <div class="location-heading"><div><p class="eyebrow" data-i18n="currentWeather">လက်ရှိရာသီဥတု</p><h2 id="locationName">—</h2><p id="locationMeta" class="muted">—</p></div><time id="updatedAt" class="muted">—</time></div>
+
+      <div class="hero-card">
+        <div>
+          <div class="hero-temp"><span id="temperature">—</span><sup>°C</sup></div>
+          <p id="condition" class="condition">—</p>
+          <p class="muted"><span data-i18n="feelsLike">ခံစားရသည်</span> <strong id="feelsLike">—</strong>°C</p>
+        </div>
+        <div class="hero-side">
+          <div id="weatherIcon" class="weather-icon" aria-hidden="true">☀️</div>
+          <span id="severityBadge" class="badge normal">Normal</span>
+        </div>
+      </div>
+
+      <div class="risk-panel">
+        <div>
+          <p class="eyebrow" data-i18n="riskTitle">Risk overview</p>
+          <p id="riskNarrative" class="risk-narrative">—</p>
+        </div>
+        <div id="riskScore" class="risk-score low">Low</div>
+      </div>
+
+      <div class="metric-grid">
+        <article class="metric"><span class="metric-icon">🌧</span><div><p data-i18n="rainfall">မိုးရေချိန်</p><strong id="rainfall">—</strong><small data-i18n="next24h">လာမည့် ၂၄ နာရီ</small></div></article>
+        <article class="metric"><span class="metric-icon">☔</span><div><p data-i18n="rainChance">မိုးရွာနိုင်ချေ</p><strong id="rainChance">—</strong><small>Probability</small></div></article>
+        <article class="metric"><span class="metric-icon">🌫</span><div><p data-i18n="airQuality">လေထုအရည်အသွေး</p><strong id="aqi">—</strong><small id="aqiDetail">—</small></div></article>
+        <article class="metric"><span class="metric-icon">☀</span><div><p data-i18n="uvIndex">UV အညွှန်း</p><strong id="uvIndex">—</strong><small id="uvDetail">—</small></div></article>
+        <article class="metric"><span class="metric-icon">💧</span><div><p data-i18n="humidity">စိုထိုင်းဆ</p><strong id="humidity">—</strong><small data-i18n="relative">Relative humidity</small></div></article>
+        <article class="metric"><span class="metric-icon">💨</span><div><p data-i18n="wind">လေတိုက်နှုန်း</p><strong id="wind">—</strong><small id="windDirection">—</small></div></article>
+      </div>
+
+      <div class="content-grid">
+        <section class="card">
+          <div class="section-heading"><h3 data-i18n="sevenDay">၇ ရက် ခန့်မှန်းချက်</h3><span class="source-tag">Open-Meteo</span></div>
+          <div id="forecast" class="forecast-list"></div>
+        </section>
+
+        <section class="card">
+          <div class="section-heading"><h3 data-i18n="hazards">အန္တရာယ်အခြေအနေ</h3><span class="source-tag">Early signal</span></div>
+          <div id="hazards" class="hazards"></div>
+          <p class="tiny" data-i18n="hazardNote">ဤအချက်များသည် ခန့်မှန်းအချက်ပြချက်သာဖြစ်ပြီး တရားဝင်သတိပေးချက်မဟုတ်ပါ။</p>
+        </section>
+      </div>
+
+      <div class="chart-grid">
+        <section class="card chart-card">
+          <div class="section-heading"><h3 data-i18n="tempTrend">Temperature trend</h3><span class="source-tag">7-day</span></div>
+          <div id="tempChart" class="chart-surface"></div>
+        </section>
+        <section class="card chart-card">
+          <div class="section-heading"><h3 data-i18n="rainTrend">Rainfall trend</h3><span class="source-tag">7-day</span></div>
+          <div id="rainChart" class="rain-bars"></div>
+        </section>
+      </div>
+
+      <section class="card climate-card">
+        <div class="section-heading">
+          <div><h3 data-i18n="climateTitle">နှစ် ၄၀ ရာသီဥတုမှတ်တမ်း</h3><p class="muted" data-i18n="climateHint">NASA POWER data နှင့် လက်ရှိအခြေအနေကို နှိုင်းယှဉ်ထားသည်။</p></div>
+          <span class="source-tag">NASA POWER</span>
+        </div>
+        <div id="climateSummary" class="climate-summary">—</div>
+        <div id="climateChart" class="climate-chart"></div>
+        <p id="outlook" class="outlook" hidden></p>
+      </section>
+
+      <p class="disclaimer" data-i18n="disclaimer">ခန့်မှန်းချက်သည် မော်ဒယ်ဒေတာဖြစ်ပြီး တရားဝင်ဘေးအန္တရာယ်သတိပေးချက် မဟုတ်ပါ။ အရေးပေါ်အခြေအနေတွင် အာဏာပိုင်များ၏ ထုတ်ပြန်ချက်ကိုသာ လိုက်နာပါ။</p>
+    </section>
+
+    <footer>Weather Myanmar · Open-Meteo · NASA POWER</footer>
+  </main>
+  <script src="weather_script.js"></script>
+</body>
+</html>
