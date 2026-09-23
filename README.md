@@ -1,32 +1,43 @@
-# Myanmar Weather Dashboard
+# Myanmar Weather Safety Dashboard
 
-A free, responsive and bilingual weather dashboard for Myanmar. The interface intentionally avoids complicated region/state selectors: search any city or township directly instead.
+This branch adds a long-term foundation for a bilingual weather and disaster-awareness dashboard.
 
-## Included
+## What is included
 
 - Minimalist responsive UI for phones, tablets and desktop screens.
-- Burmese/English toggle saved in `localStorage`.
-- Light/dark theme saved in `localStorage`.
-- City/township search through the free Open-Meteo geocoding API.
-- Current temperature, feels-like temperature, humidity and wind.
-- 24-hour rainfall total and rain probability.
-- UV index with a readable risk label.
-- US AQI, PM2.5 and PM10 from Open-Meteo Air Quality.
-- Seven-day forecast, sunrise, sunset, pressure and visibility.
-- Recent locations and current-device location support.
-- No API key, paid service or frontend build step required.
+- Burmese/English switching and light/dark theme persistence.
+- Direct city/township search without complicated region selectors.
+- Open-Meteo weather and air-quality data: rainfall, rain probability, temperature, humidity, wind, UV, AQI, PM2.5, PM10, visibility, pressure and sun times.
+- Automatic refresh every 10 minutes.
+- Public alert panel using NASA EONET with a GDACS RSS server-side fallback when the FastAPI proxy is running.
+- Transparent source labels and a prominent warning that public model/event feeds are not official emergency warnings.
+- Heuristic flood and landslide watch cards based on forecast rainfall; these are awareness indicators, not predictions or rescue instructions.
 
-## Run locally
+## Important safety limitation
 
-Open `weather.html` in a modern browser, or serve the repository with any static server. HTTPS is recommended when using the browser location button.
+No public web app can guarantee that a flood or landslide will be prevented or detected instantly everywhere. NASA EONET is an event catalogue and may be delayed or incomplete for local incidents. Use official Myanmar authority warnings and emergency services as the highest-priority source.
 
-## Data and accuracy
+## Static mode
 
-Weather and air-quality values are model-based forecasts from Open-Meteo. They are not official emergency warnings and should not replace local authority announcements. Rainfall is forecast precipitation in millimetres; AQI and pollutant values are model estimates for the selected coordinate.
+Open `weather.html` or deploy the repository as a static site. Weather works directly from Open-Meteo. The browser attempts `/api/alerts` first and falls back to NASA EONET where browser CORS allows it.
+
+## Optional FastAPI proxy
+
+```bash
+pip install -r requirements.txt
+uvicorn main:app --reload
+```
+
+Endpoints:
+
+- `GET /api/weather?lat=21.9588&lon=96.0891`
+- `GET /api/alerts`
+
+The proxy caches provider results for 10 minutes, combines NASA EONET and GDACS events, and returns source/timestamp metadata. For production, restrict CORS, add persistent caching, monitoring, rate limits and an official local alert feed.
 
 ## File descriptions
 
-- `weather.html`: accessible page structure, controls and data cards.
-- `weather_style.css`: responsive minimalist design, colours and dark theme.
-- `weather_script.js`: translation, search, API requests, rendering and saved preferences.
-- `main.py`: optional FastAPI proxy kept for future deployments that need server-side caching.
+- `weather.html`: accessible dashboard structure and safety panels.
+- `weather_style.css`: responsive visual system and alert severity styles.
+- `weather_script.js`: translations, API calls, rainfall-risk indicators, alert rendering and auto-refresh.
+- `main.py`: optional server-side cache and public-feed normalisation.
