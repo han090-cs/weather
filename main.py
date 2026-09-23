@@ -1,51 +1,41 @@
-from fastapi import FastAPI, HTTPException
-from fastapi.middleware.cors import CORSMiddleware
+"""Optional API proxy for deployments that prefer server-side weather requests.
+
+The static frontend does not require this service. Keeping the proxy documented and
+small makes a future migration to a server-rendered or rate-limited deployment easier.
+"""
+from datetime import datetime, timedelta, timezone
+from typing import Any
+
 import httpx
-from datetime import datetime, timedelta
+from fastapi import FastAPI, HTTPException, Query
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+app = FastAPI(title="Myanmar Weather API", version="1.0.0", description="Optional cached proxy for Open-Meteo weather and air-quality data.")
+app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET"], allow_headers=["*"])
 
-# Frontend ကနေ လှမ်းခေါ်လို့ရအောင် CORS ဖွင့်ပေးခြင်း
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"], 
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+CACHE: dict[str, tuple[datetime, dict[str, Any]]] = {}
+CACHE_MINUTES = 10
 
-# API Data များကို ၁၀ မိနစ်စာ ခေတ္တသိမ်းထားရန် Dictionary
-cache = {}
-CACHE_EXPIRE_MINUTES = 10
+@app.get("/api/weather", summary="Get weather and air quality for coordinates")
+async def weather(lat: float = Query(..., ge=-90, le=90), lon: float = Query(..., ge=-180, le=180)) -> dict[str, Any]:
+    """Fetch one coordinate from both free Open-Meteo endpoints and cache it briefly."""
+    key = f"{lat:.4f}:{lon:.4f}"
+    now = datetime.now(timezone.utc)
+    cached = CACHE.get(key)
+    if cached and now - cached[0] < timedelta(minutes=CACHE_MINUTES):
+        return cached[1]
 
-@app.get("/api/weather")
-async def get_weather(lat: float, lon: float):
-    cache_key = f"{lat}_{lon}"
-    now = datetime.now()
-
-    # (၁) လွန်ခဲ့သော ၁၀ မိနစ်အတွင်း ရှာထားဖူးရင် Cache ထဲကဟာကိုပဲ ပြန်ပေးမယ်
-    if cache_key in cache:
-        cached_data, timestamp = cache[cache_key]
-        if now - timestamp < timedelta(minutes=CACHE_EXPIRE_MINUTES):
-            return cached_data
-
-    # (၂) Cache မရှိရင် Open-Meteo ကနေ အသစ်လှမ်းယူမယ်
-    weather_url = f"https://api.open-meteo.com/v1/forecast?latitude={lat}&longitude={lon}&current=temperature_2m,relative_humidity_2m,apparent_temperature,dew_point_2m,precipitation,rain,weather_code,pressure_msl,surface_pressure,visibility,wind_speed_10m,wind_direction_10m,wind_gusts_10m&hourly=temperature_2m,precipitation_probability,precipitation,rain,weather_code,relative_humidity_2m,wind_speed_10m,wind_gusts_10m,wind_direction_10m,visibility,uv_index&daily=weather_code,temperature_2m_max,temperature_2m_min,apparent_temperature_max,precipitation_sum,rain_sum,precipitation_probability_max,wind_speed_10m_max,wind_gusts_10m_max,sunrise,sunset,uv_index_max&forecast_days=7&timezone=auto&wind_speed_unit=kmh"
-    
-    air_url = f"https://air-quality-api.open-meteo.com/v1/air-quality?latitude={lat}&longitude={lon}&current=us_aqi,pm2_5,pm10,carbon_monoxide,nitrogen_dioxide,sulphur_dioxide,ozone&timezone=auto"
-
-    async with httpx.AsyncClient() as client:
-        weather_res = await client.get(weather_url)
-        air_res = await client.get(air_url)
-
-        if weather_res.status_code != 200:
-            raise HTTPException(status_code=400, detail="API Error")
-
-        final_data = {
-            "weather": weather_res.json(),
-            "air_quality": air_res.json() if air_res.status_code == 200 else {}
-        }
-
-        # (၃) ရလာတဲ့ Data အသစ်ကို Cache ထဲ သိမ်းမယ်
-        cache[cache_key] = (final_data, now)
-
-        return final_data
+    weather_url = "https://api.open-meteo.com/v1/forecast"
+    air_url = "https://air-quality-api.open-meteo.com/v1/air-quality"
+    weather_params = {"latitude": lat, "longitude": lon, "current": "temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,rain,weather_code,pressure_msl,visibility,wind_speed_10m,wind_direction_10m", "daily": "temperature_2m_max,temperature_2m_min,precipitation_sum,precipitation_probability_max,uv_index_max,sunrise,sunset", "forecast_days": 7, "timezone": "auto", "wind_speed_unit": "kmh"}
+    air_params = {"latitude": lat, "longitude": lon, "current": "us_aqi,pm2_5,pm10", "timezone": "auto"}
+    try:
+        async with httpx.AsyncClient(timeout=15) as client:
+            weather_response, air_response = await __import__("asyncio").gather(client.get(weather_url, params=weather_params), client.get(air_url, params=air_params))
+        if weather_response.status_code != 200:
+            raise HTTPException(status_code=502, detail="Weather provider error")
+        result = {"weather": weather_response.json(), "air_quality": air_response.json() if air_response.status_code == 200 else {}}
+        CACHE[key] = (now, result)
+        return result
+    except httpx.HTTPError as exc:
+        raise HTTPException(status_code=502, detail="Unable to reach weather provider") from exc
