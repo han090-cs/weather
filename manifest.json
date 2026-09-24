@@ -1,0 +1,10 @@
+{
+  "name": "Myanmar Weather Dashboard",
+  "short_name": "Myanmar Weather",
+  "start_url": "./weather.html",
+  "scope": "./",
+  "display": "standalone",
+  "theme_color": "#eef4ff",
+  "background_color": "#eef4ff",
+  "icons": []
+}
